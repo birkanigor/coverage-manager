@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --watch src --ext ts --exec ts-node src/index.ts"
+    "dev": "nodemon --watch src --ext ts --exec ts-node src/index.ts",
+    "compile": "npx tsc"
   },
   "keywords": [],
   "author": "",
@@ -21,8 +21,11 @@
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "express": "5.0.0",
     "jsonwebtoken": "^9.0.2",
-    "nodemon": "^3.1.7"
+    "log4js": "^6.9.1",
+    "nodemon": "^3.1.7",
+    "pg": "^8.14.0"
   }
 }

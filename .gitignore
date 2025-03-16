@@ -3,6 +3,7 @@ logs
 npm-debug.log*
 pnpm-debug.log*
 logs/
+log/
 *.log
 *.log.*
 
