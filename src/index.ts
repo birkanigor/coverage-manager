@@ -4,6 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/authRoutes';
 import dataRoutes from './routes/dataRoutes';
+import confRoutes from "./routes/confRoutes";
 import {AuthMiddleware} from './middleware/authMiddleware'
 import { EnvReader } from './env';
 import logger from "./app.logger";
@@ -23,6 +24,7 @@ app.use(bodyParser.json());
 app.use('/', authMiddleware.logRequestMiddleware);
 app.use('/auth', authRoutes);
 app.use('/data', dataRoutes);
+app.use('/conf', confRoutes);
 
 app.listen(PORT, () => {
     return logger.debug(`Express is listening at http://localhost:${PORT} `);

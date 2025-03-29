@@ -5,6 +5,7 @@ export class EnvReader {
     private envPath: string;
 
     constructor(envPath: string = path.resolve(process.cwd(), process.env.ENV_FILE || '.env')) {
+
         this.envPath = envPath;
         dotenv.config({ path: envPath });
     }
@@ -15,5 +16,9 @@ export class EnvReader {
 
     public getValue(valueName: string): string  {
         return <string>this.getEnvVar(valueName);
+    }
+
+    public getEnvPath(): string {
+        return this.envPath
     }
 }
