@@ -7,6 +7,6 @@ const authMiddleware = new AuthMiddleware();
 const confController = new ConfController();
 
 router.get('/getTcpList', authMiddleware.authenticate, confController.getTcpList);
-router.get('/getPzCutOffPoints', authMiddleware.authenticate, confController.getPzCutOffPoints);
+router.post('/getPzCutOffPoints', authMiddleware.authenticate, confController.getPzCutOffPoints);
 
 export default router;

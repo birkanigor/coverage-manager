@@ -1,4 +1,6 @@
-import { Pool, QueryResult, QueryResultRow, PoolClient } from 'pg';
+import { Pool, QueryResult, QueryResultRow, PoolClient, Client  } from 'pg';
+import { from } from "pg-copy-streams";
+import { Readable } from "stream";
 import { EnvReader } from './env';
 import { Logger as Log4jsLogger } from "log4js";
 
@@ -7,6 +9,7 @@ type QueryParams = any[];
 export class PostgresQueryRunner {
     private pool: Pool;
     private log: Log4jsLogger ;
+    private client: Client;
 
     private typeMapping: { [key: number]: string } = {
         16: 'boolean',
@@ -26,13 +29,16 @@ export class PostgresQueryRunner {
         const envReader = new EnvReader();
         this.log = log;
 
-        this.pool = new Pool({
+        const config = {
             user: envReader.getValue("DB_USER"),
             password: envReader.getValue("DB_PASSWORD"),
             host: envReader.getValue("DB_HOST"),
             port: parseInt(envReader.getValue("DB_PORT") || '5432', 10),
             database: envReader.getValue("DB_NAME"),
-        });
+        }
+
+        this.pool = new Pool(config);
+        this.client = new Client(config)
 
         this.log.debug(`path : ${envReader.getEnvPath()}`)
         this.log.debug(JSON.stringify(this.pool.options));
@@ -41,7 +47,7 @@ export class PostgresQueryRunner {
             try {
                 await client.query('SET search_path TO cm_conf, public');
             } catch (error) {
-                console.error('Error setting search_path:', error);
+                this.log.error('Error setting search_path:', error);
             }
         });
     }
@@ -72,6 +78,49 @@ export class PostgresQueryRunner {
             throw error;
         }
     }
+
+    
+    public async copyCsvStreamToTable(
+        csvStream: Readable,
+        tableName: string,
+        truncateBeforeLoad = false
+    ): Promise<boolean> {
+        await this.client.connect();
+        try {
+             this.log.log(`copyCsvStreamToTable started`)
+
+            await this.client.query("BEGIN");
+
+            if (truncateBeforeLoad) {
+                await this.client.query(`TRUNCATE TABLE ${tableName}`);
+            }
+           
+            const copySql = `COPY ${tableName}  FROM STDIN WITH (FORMAT csv, HEADER true)`;
+            this.log.log(`copySql : ${copySql}`)
+
+            const copyStream = this.client.query(from(copySql));
+             this.log.log('copyStream done')
+            await new Promise<void>((resolve, reject) => {
+                csvStream
+                .pipe(copyStream)
+                .on("finish", resolve)
+                .on("error", reject);
+            });
+
+            this.log.log(' Promise<void>((resolve, reject) done')
+
+            await this.client.query("COMMIT");
+            this.log.log(`CSV successfully copied into ${tableName}`);
+            return true;
+        } catch (err) {
+            await this.client.query("ROLLBACK");
+            this.log.error("Error during COPY:", err);
+            return false;
+        } finally {
+            await this.client.end();
+        }
+    }
+
 
 
     /**
