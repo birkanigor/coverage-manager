@@ -15,6 +15,18 @@ export class DataController {
         res.json({status: 'SUCCESS', data: rows, columns, message: ''});
     };
 
+    updateOperatorInfoData = async (req: Request, res: Response) => {
+        const { id, plmnoCode, mccMnc, region, country, operatorName, countryCode, mgt } = req.body;
+        logger.debug(`updateOperatorInfoData API called . id : ${id}, plmnoCode: ${plmnoCode}, mccMnc: ${mccMnc}, region: ${region}, country: ${country}, operatorName: ${operatorName}, countryCode: ${countryCode}, mgt: ${mgt}`)
+        const updateQuery = `update cm_data.t_operator_info
+set plmno_code=$1, mcc_mnc=$2, region=$3, country=$4, operator_name=$5, country_code=$6, mgt=$7
+where id=$8`
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(updateQuery,
+            [plmnoCode, mccMnc, region, country, operatorName, countryCode, mgt, id], true);
+    res.json({status: 'SUCCESS', data: rows, columns, message: ''});
+    };
+        
+
     getNbIotData = async (req: Request, res: Response) => {
         logger.debug(`getNbIotData API called`)
         const { rows, columns } = await this.postgresQueryRunner.executeQuery('with \n' +

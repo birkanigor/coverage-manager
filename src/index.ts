@@ -6,6 +6,7 @@ import authRoutes from './routes/authRoutes';
 import dataRoutes from './routes/dataRoutes';
 import confRoutes from "./routes/confRoutes";
 import uploadRoutes from "./routes/uploadRoutes"
+import screenRoutes from "./routes/screensRoutes"
 import {AuthMiddleware} from './middleware/authMiddleware'
 import { EnvReader } from './env';
 import logger from "./app.logger";
@@ -27,6 +28,7 @@ app.use('/auth', authRoutes);
 app.use('/data', dataRoutes);
 app.use('/conf', confRoutes);
 app.use('/upload', uploadRoutes);
+app.use('/screen', screenRoutes)
 
 app.listen(PORT, () => {
     return logger.debug(`Express is listening at http://localhost:${PORT} `);

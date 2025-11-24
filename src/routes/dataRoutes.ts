@@ -7,6 +7,7 @@ const authMiddleware = new AuthMiddleware();
 const dataController = new DataController();
 
 router.get('/getOperatorInfoData', authMiddleware.authenticate, dataController.getOperatorInfoData);
+router.post('/updateOperatorInfoData', authMiddleware.authenticate, dataController.updateOperatorInfoData)
 router.get('/getNbIotData', authMiddleware.authenticate, dataController.getNbIotData);
 router.get('/getCatMData', authMiddleware.authenticate, dataController.getCatMData);
 // router.get('/getBapData', authMiddleware.authenticate, dataController.getBapData);

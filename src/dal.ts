@@ -79,47 +79,86 @@ export class PostgresQueryRunner {
         }
     }
 
+
     
-    public async copyCsvStreamToTable(
-        csvStream: Readable,
-        tableName: string,
-        truncateBeforeLoad = false
-    ): Promise<boolean> {
-        await this.client.connect();
-        try {
-             this.log.log(`copyCsvStreamToTable started`)
+public async copyCsvStreamToTable(
+    csvStream: Readable,
+    tableName: string,
+    truncateBeforeLoad = false
+): Promise<boolean> {
+    const client = await this.pool.connect(); // <-- borrow from pool
+    try {
+        this.log.log(`copyCsvStreamToTable started`);
 
-            await this.client.query("BEGIN");
+        await client.query("BEGIN");
 
-            if (truncateBeforeLoad) {
-                await this.client.query(`TRUNCATE TABLE ${tableName}`);
-            }
-           
-            const copySql = `COPY ${tableName}  FROM STDIN WITH (FORMAT csv, HEADER true)`;
-            this.log.log(`copySql : ${copySql}`)
+        if (truncateBeforeLoad) {
+            await client.query(`TRUNCATE TABLE ${tableName}`);
+        }
 
-            const copyStream = this.client.query(from(copySql));
-             this.log.log('copyStream done')
-            await new Promise<void>((resolve, reject) => {
-                csvStream
+        const copySql = `COPY ${tableName} FROM STDIN WITH (FORMAT csv, HEADER true)`;
+        this.log.log(`copySql : ${copySql}`);
+
+        const copyStream = client.query(from(copySql));
+        await new Promise<void>((resolve, reject) => {
+            csvStream
                 .pipe(copyStream)
                 .on("finish", resolve)
                 .on("error", reject);
-            });
+        });
 
-            this.log.log(' Promise<void>((resolve, reject) done')
-
-            await this.client.query("COMMIT");
-            this.log.log(`CSV successfully copied into ${tableName}`);
-            return true;
-        } catch (err) {
-            await this.client.query("ROLLBACK");
-            this.log.error("Error during COPY:", err);
-            return false;
-        } finally {
-            await this.client.end();
-        }
+        await client.query("COMMIT");
+        this.log.log(`CSV successfully copied into ${tableName}`);
+        return true;
+    } catch (err) {
+        await client.query("ROLLBACK");
+        this.log.error("Error during COPY:", err);
+        return false;
+    } finally {
+        client.release(); // return to pool instead of end()
     }
+}
+    
+    // public async copyCsvStreamToTable(
+    //     csvStream: Readable,
+    //     tableName: string,
+    //     truncateBeforeLoad = false
+    // ): Promise<boolean> {
+    //     await this.client.connect();
+    //     try {
+    //          this.log.log(`copyCsvStreamToTable started`)
+
+    //         await this.client.query("BEGIN");
+
+    //         if (truncateBeforeLoad) {
+    //             await this.client.query(`TRUNCATE TABLE ${tableName}`);
+    //         }
+           
+    //         const copySql = `COPY ${tableName}  FROM STDIN WITH (FORMAT csv, HEADER true)`;
+    //         this.log.log(`copySql : ${copySql}`)
+
+    //         const copyStream = this.client.query(from(copySql));
+    //          this.log.log('copyStream done')
+    //         await new Promise<void>((resolve, reject) => {
+    //             csvStream
+    //             .pipe(copyStream)
+    //             .on("finish", resolve)
+    //             .on("error", reject);
+    //         });
+
+    //         this.log.log(' Promise<void>((resolve, reject) done')
+
+    //         await this.client.query("COMMIT");
+    //         this.log.log(`CSV successfully copied into ${tableName}`);
+    //         return true;
+    //     } catch (err) {
+    //         await this.client.query("ROLLBACK");
+    //         this.log.error("Error during COPY:", err);
+    //         return false;
+    //     } finally {
+    //         await this.client.end();
+    //     }
+    // }
 
 
 
