@@ -167,6 +167,52 @@ where id=$8`
         res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
     }
 
+    update2G3GSunsetData = async (req: Request, res: Response) => {
+        const { id, plmnoCode, countryName, operatorName, sunset2g, sunset3g } = req.body;
+        logger.debug(`update2G3GSunsetData API called. id: ${id}, plmnoCode: ${plmnoCode}, countryName: ${countryName}, operatorName: ${operatorName}, sunset2g: ${sunset2g}, sunset3g: ${sunset3g}`);
+
+        const updateQuery = `UPDATE cm_data.t_2g_3g_sunset
+SET plmno_code=$1, country_name=$2, operator_name=$3, sunset_2g=$4, sunset_3g=$5
+WHERE id=$6`;
+
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(
+            updateQuery,
+            [plmnoCode, countryName, operatorName, sunset2g, sunset3g, id],
+            true
+        );
+
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    };
+
+    insert2G3GSunsetData = async (req: Request, res: Response) => {
+        const { plmnoCode, countryName, operatorName, sunset2g, sunset3g } = req.body;
+        logger.debug(`insert2G3GSunsetData API called. plmnoCode: ${plmnoCode}, countryName: ${countryName}, operatorName: ${operatorName}, sunset2g: ${sunset2g}, sunset3g: ${sunset3g}`);
+
+        const insertQuery = `
+        INSERT INTO cm_data.t_2g_3g_sunset (plmno_code, country_name, operator_name, sunset_2g, sunset_3g)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *`;
+
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(
+            insertQuery,
+            [plmnoCode, countryName, operatorName, sunset2g, sunset3g],
+            true
+        );
+
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    };
+
+    delete2G3GSunsetData = async (req: Request, res: Response) => {
+        const { id } = req.body;
+        logger.debug(`delete2G3GSunsetData API called. id: ${id}`);
+
+        const deleteQuery = `DELETE FROM cm_data.t_2g_3g_sunset WHERE id=$1 RETURNING *`;
+
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(deleteQuery, [id], true);
+
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    };
+
     getCountriesRoamingProhibitedData = async (req: Request, res: Response) => {
         logger.debug(`getCountriesRoamingProhibitedData API called`)
         const { rows, columns } = await this.postgresQueryRunner.executeQuery(

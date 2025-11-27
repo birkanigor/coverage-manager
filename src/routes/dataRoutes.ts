@@ -16,7 +16,12 @@ router.get('/getCatMData', authMiddleware.authenticate, dataController.getCatMDa
 // router.get('/getBapData', authMiddleware.authenticate, dataController.getBapData);
 
 router.post('/getBapData', authMiddleware.authenticate, dataController.getBapData);
+
 router.get('/get2G3GSunsetData', authMiddleware.authenticate, dataController.get2G3GSunsetData);
+router.post('/update2G3GSunsetData', authMiddleware.authenticate, dataController.update2G3GSunsetData);
+router.post('/insert2G3GSunsetData', authMiddleware.authenticate, dataController.insert2G3GSunsetData);
+router.post('/delete2G3GSunsetData', authMiddleware.authenticate, dataController.delete2G3GSunsetData);
+
 router.get('/getCountriesRoamingProhibitedData',authMiddleware.authenticate, dataController.getCountriesRoamingProhibitedData);
 router.get('/getIotlaunchesAndSteeringData',authMiddleware.authenticate, dataController.getIotlaunchesAndSteeringData);
 
