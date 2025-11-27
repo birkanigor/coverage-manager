@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import {PostgresQueryRunner} from "../dal"
+import { PostgresQueryRunner } from "../dal"
 import logger from "../app.logger";
 
 export class DataController {
@@ -11,8 +11,8 @@ export class DataController {
         const { rows, columns } = await this.postgresQueryRunner.executeQuery(
             'select id , plmno_code , mcc_mnc , region , country , operator_name , country_code , mgt \n' +
             'from cm_data.t_operator_info\n' +
-            'order by id',[],true)
-        res.json({status: 'SUCCESS', data: rows, columns, message: ''});
+            'order by id', [], true)
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
     };
 
     updateOperatorInfoData = async (req: Request, res: Response) => {
@@ -23,9 +23,41 @@ set plmno_code=$1, mcc_mnc=$2, region=$3, country=$4, operator_name=$5, country_
 where id=$8`
         const { rows, columns } = await this.postgresQueryRunner.executeQuery(updateQuery,
             [plmnoCode, mccMnc, region, country, operatorName, countryCode, mgt, id], true);
-    res.json({status: 'SUCCESS', data: rows, columns, message: ''});
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
     };
-        
+
+
+    insertOperatorInfoData = async (req: Request, res: Response) => {
+        const { plmnoCode, mccMnc, region, country, operatorName, countryCode, mgt } = req.body;
+        logger.debug(`insertOperatorInfoData API called. plmnoCode: ${plmnoCode}, mccMnc: ${mccMnc}, region: ${region}, country: ${country}, operatorName: ${operatorName}, countryCode: ${countryCode}, mgt: ${mgt}`);
+
+        const insertQuery = `
+        INSERT INTO cm_data.t_operator_info (plmno_code, mcc_mnc, region, country, operator_name, country_code, mgt)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *`;
+
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(
+            insertQuery,
+            [plmnoCode, mccMnc, region, country, operatorName, countryCode, mgt],
+            true
+        );
+
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    };
+
+    
+    deleteOperatorInfoData = async (req: Request, res: Response) => {
+        const { id } = req.body;
+        logger.debug(`deleteOperatorInfoData API called. id: ${id}`);
+
+        const deleteQuery = `DELETE FROM cm_data.t_operator_info WHERE id=$1 RETURNING *`;
+
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(deleteQuery, [id], true);
+
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    };
+
+
 
     getNbIotData = async (req: Request, res: Response) => {
         logger.debug(`getNbIotData API called`)
@@ -51,8 +83,8 @@ where id=$8`
             'from operator_info t1 left join t_sparkle_roaming_updated t2 on t1.plmno_code = t2.plmno_code \n' +
             'left join tele2_coverage t3 on t1.plmno_code = t3.tadig_code\n' +
             'left join bics_coverage_bands_updated t4 on t1.plmno_code = t4.barring_reference_bics\n' +
-            'order by t1.plmno_code',[],true)
-        res.json({status: 'SUCCESS', data: rows, columns , message: ''});
+            'order by t1.plmno_code', [], true)
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
     }
 
     getCatMData = async (req: Request, res: Response) => {
@@ -93,16 +125,16 @@ where id=$8`
             'case when "general" ~* \'true\' and "TIM" ~*\'false\' then \'TRUE*\' else "TIM" end "TIM_general",\n' +
             'case when "general" ~* \'true\' and "TELE2" ~*\'false\' then \'TRUE*\' else "TELE2" end "TELE2_general",\n' +
             'case when "general" ~* \'true\' and "BICS" ~*\'false\' then \'TRUE*\' else "BICS" end "BICS_general"\n' +
-            'from imsi_donors_info\t\n',[],true)
-        res.json({status: 'SUCCESS', data: rows, columns, message: ''});
+            'from imsi_donors_info\t\n', [], true)
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
     };
 
     getBapData = async (req: Request, res: Response) => {
         const { id } = req.body;
         logger.debug(`getBapData API called , id : ${id}`)
-        if(![1,2,3,4,5].includes(Number(id))){
-            res.json({status: 'FAIL', data: [], message: 'Invalid TCP number'});
-        }else{
+        if (![1, 2, 3, 4, 5].includes(Number(id))) {
+            res.json({ status: 'FAIL', data: [], message: 'Invalid TCP number' });
+        } else {
             const { rows, columns } = await this.postgresQueryRunner.executeQuery(
                 'with all_baps as\n' +
                 '(select id , country country_name, mcc , active active_imsi_donor , imsi_donor imsi_donor_name , 1 tcp\n' +
@@ -121,8 +153,8 @@ where id=$8`
                 'from cm_data.t_telit_next_carrier_list_bap_tcp5)\n' +
                 'select id, country_name, mcc, active_imsi_donor, imsi_donor_name\n' +
                 'from all_baps where tcp = $1\n' +
-                'order by country_name',[id],true);
-            res.json({status: 'SUCCESS', data: rows, columns, message: ''});
+                'order by country_name', [id], true);
+            res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
         }
     }
 
@@ -131,8 +163,8 @@ where id=$8`
         const { rows, columns } = await this.postgresQueryRunner.executeQuery(
             'select id, plmno_code, country_name, operator_name, sunset_2g, sunset_3g \n' +
             'from cm_data.t_2g_3g_sunset\n' +
-            'order by id',[],true)
-        res.json({status: 'SUCCESS', data: rows, columns, message: ''});
+            'order by id', [], true)
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
     }
 
     getCountriesRoamingProhibitedData = async (req: Request, res: Response) => {
@@ -140,8 +172,8 @@ where id=$8`
         const { rows, columns } = await this.postgresQueryRunner.executeQuery(
             'select id, plmno_code, country_name, operator_name, sunset_2g, sunset_3g \n' +
             'from cm_data.t_2g_3g_sunset\n' +
-            'order by id',[],true)
-        res.json({status: 'SUCCESS', data: rows, columns, message: ''});
+            'order by id', [], true)
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
     }
 
     getIotlaunchesAndSteeringData = async (req: Request, res: Response) => {
@@ -149,7 +181,7 @@ where id=$8`
         const { rows, columns } = await this.postgresQueryRunner.executeQuery(
             'select id, region, country, "operator", mgt_cc_nc, mcc_mnc, tadig_code, gsm_date_outbound, gprs_date_outbound, umts_date_outbound, camel_date_outbound, lte_date_outbound, "5g_nsa_date_outbound", volte_date_outbound, lte_m_date_outbound, nb_iot_date_outbound, nrtrde_date_outbound, steering, "comment", psm_sup_lte_m, edrx_sup_lte_m, psm_sup_nbiot, edrx_sup_nbiot\n' +
             'from cm_data.t_iot_launches_and_steering \n' +
-            'order by id',[],true)
-        res.json({status: 'SUCCESS', data: rows, columns, message: ''});
+            'order by id', [], true)
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
     }
 }

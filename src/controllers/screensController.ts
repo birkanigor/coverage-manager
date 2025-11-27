@@ -19,7 +19,8 @@ sub_screens_level_2 as
 										'allowAdd', add_data , 
 										'allowEdit', edit_data , 
 										'allowDelete', delete_data, 
-										'allowUpload', upload_data )))) sub_screens_level_2
+										'allowUpload', upload_data,
+										'skipRows', skip_rows )))) sub_screens_level_2
 	from cm_conf.t_cm_system_sub_screens_level_2
 	group by sub_screen_id),
 all_sub_screens as	
