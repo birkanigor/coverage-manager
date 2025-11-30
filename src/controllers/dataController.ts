@@ -216,11 +216,57 @@ WHERE id=$6`;
     getCountriesRoamingProhibitedData = async (req: Request, res: Response) => {
         logger.debug(`getCountriesRoamingProhibitedData API called`)
         const { rows, columns } = await this.postgresQueryRunner.executeQuery(
-            'select id, plmno_code, country_name, operator_name, sunset_2g, sunset_3g \n' +
-            'from cm_data.t_2g_3g_sunset\n' +
+            'SELECT id, country_name, price_zone \n' +
+            'FROM cm_data.t_countries_roaming_prohibited\n' +
             'order by id', [], true)
         res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
     }
+
+    updateCountriesRoamingProhibitedData = async (req: Request, res: Response) => {
+        const { id, countryName, priceZone } = req.body;
+        logger.debug(`updateCountriesRoamingProhibitedData API called. id: ${id}, countryName: ${countryName}, priceZone: ${priceZone}`);
+
+        const updateQuery = `UPDATE cm_data.t_countries_roaming_prohibited
+SET country_name=$1, price_zone=$2
+WHERE id=$3`;
+
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(
+            updateQuery,
+            [countryName, priceZone, id],
+            true
+        );
+
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    };
+
+    insertCountriesRoamingProhibitedData = async (req: Request, res: Response) => {
+        const { countryName, priceZone } = req.body;
+        logger.debug(`insertCountriesRoamingProhibitedData API called. countryName: ${countryName}, priceZone: ${priceZone}`);
+
+        const insertQuery = `
+        INSERT INTO cm_data.t_countries_roaming_prohibited (country_name, price_zone)
+        VALUES ($1, $2)
+        RETURNING *`;
+
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(
+            insertQuery,
+            [countryName, priceZone],
+            true
+        );
+
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    };
+
+    deleteCountriesRoamingProhibitedData = async (req: Request, res: Response) => {
+        const { id } = req.body;
+        logger.debug(`deleteCountriesRoamingProhibitedData API called. id: ${id}`);
+
+        const deleteQuery = `DELETE FROM cm_data.t_countries_roaming_prohibited WHERE id=$1 RETURNING *`;
+
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(deleteQuery, [id], true);
+
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    };
 
     getIotlaunchesAndSteeringData = async (req: Request, res: Response) => {
         logger.debug(`getCountriesRoamingProhibitedData API called`)

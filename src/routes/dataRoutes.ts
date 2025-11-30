@@ -23,6 +23,10 @@ router.post('/insert2G3GSunsetData', authMiddleware.authenticate, dataController
 router.post('/delete2G3GSunsetData', authMiddleware.authenticate, dataController.delete2G3GSunsetData);
 
 router.get('/getCountriesRoamingProhibitedData',authMiddleware.authenticate, dataController.getCountriesRoamingProhibitedData);
+router.post('/updateCountriesRoamingProhibitedData', authMiddleware.authenticate, dataController.updateCountriesRoamingProhibitedData);
+router.post('/insertCountriesRoamingProhibitedData', authMiddleware.authenticate, dataController.insertCountriesRoamingProhibitedData);
+router.post('/deleteCountriesRoamingProhibitedData', authMiddleware.authenticate, dataController.deleteCountriesRoamingProhibitedData);
+
 router.get('/getIotlaunchesAndSteeringData',authMiddleware.authenticate, dataController.getIotlaunchesAndSteeringData);
 
 export default router;
