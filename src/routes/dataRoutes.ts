@@ -29,4 +29,6 @@ router.post('/deleteCountriesRoamingProhibitedData', authMiddleware.authenticate
 
 router.get('/getIotlaunchesAndSteeringData',authMiddleware.authenticate, dataController.getIotlaunchesAndSteeringData);
 
+router.get('/getMasterListData', authMiddleware.authenticate, dataController.getMasterListData);
+
 export default router;
