@@ -313,4 +313,49 @@ WHERE id=$3`;
             [], true)
         res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
     }
+
+    getPriceZoneListTcp1GlobalData = async (req: Request, res: Response) => {
+        logger.debug(`getPriceZoneListTcp1GlobalData API called`)
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(
+            'select plmno_code, mcc_mnc, region, country, operator_name, price_zone, "2g", "3g", "4g", cat_m, nb_iot, "comments", imsi_donor\n' +
+            'from cm_data.v_price_zone_list_tcp1_global\n' +
+            'order by plmno_code', [], true)
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    }
+
+    getPriceZoneListTcp2GlobalData = async (req: Request, res: Response) => {
+        logger.debug(`getPriceZoneListTcp2GlobalData API called`)
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(
+            'select plmno_code, mcc_mnc, region, country, operator_name, price_zone, "2g", "3g", "4g", cat_m, nb_iot, "comments", imsi_donor\n' +
+            'from cm_data.v_price_zone_list_tcp2_global\n' +
+            'order by plmno_code', [], true)
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    }
+
+    getPriceZoneListTcp3GlobalData = async (req: Request, res: Response) => {
+        logger.debug(`getPriceZoneListTcp3GlobalData API called`)
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(
+            'select plmno_code, mcc_mnc, region, country, operator_name, price_zone, "2g", "3g", "4g", cat_m, nb_iot, "comments", imsi_donor\n' +
+            'from cm_data.v_price_zone_list_tcp3_global\n' +
+            'order by plmno_code', [], true)
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    }
+
+    getPriceZoneListTcp4GlobalData = async (req: Request, res: Response) => {
+        logger.debug(`getPriceZoneListTcp4GlobalData API called`)
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(
+            'select plmno_code, mcc_mnc, region, country, operator_name, price_zone, "2g", "3g", "4g", cat_m, nb_iot, "comments", imsi_donor\n' +
+            'from cm_data.v_price_zone_list_tcp4_global\n' +
+            'order by plmno_code', [], true)
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    }
+
+    getPriceZoneListTcp5GlobalData = async (req: Request, res: Response) => {
+        logger.debug(`getPriceZoneListTcp5GlobalData API called`)
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(
+            'select plmno_code, mcc_mnc, region, country, operator_name, price_zone, "2g", "3g", "4g", cat_m, nb_iot, "comments", imsi_donor\n' +
+            'from cm_data.v_price_zone_list_tcp5_global\n' +
+            'order by plmno_code', [], true)
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    }
 }

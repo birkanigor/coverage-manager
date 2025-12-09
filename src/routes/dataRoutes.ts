@@ -31,4 +31,10 @@ router.get('/getIotlaunchesAndSteeringData',authMiddleware.authenticate, dataCon
 
 router.get('/getMasterListData', authMiddleware.authenticate, dataController.getMasterListData);
 
+router.get('/getPriceZoneListTcp1GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp1GlobalData);
+router.get('/getPriceZoneListTcp2GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp2GlobalData);
+router.get('/getPriceZoneListTcp3GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp3GlobalData);
+router.get('/getPriceZoneListTcp4GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp4GlobalData);
+router.get('/getPriceZoneListTcp5GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp5GlobalData);
+
 export default router;
