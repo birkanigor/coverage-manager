@@ -358,4 +358,30 @@ WHERE id=$3`;
             'order by plmno_code', [], true)
         res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
     }
+
+    getPriceZoneListEprofile1Data = async (req: Request, res: Response) => {
+        logger.debug(`getPriceZoneListEprofile1Data API called`)
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(
+            'select distinct\n' +
+            't1.plmno_code, t1.mcc_mnc,\n' +
+            't1.region, t1.country, t1.operator_name, t3.eprofile_1_bics,\n' +
+            't2.bics_2g, t2.bics_3g, t2.bics_4g,\n' +
+            't12."BICS" cat_m,\n' +
+            't13."BICS" nb_iot,\n' +
+            'case \n' +
+            '  when t10.prr = \'TRUE\' \n' +
+            '   and (t10.country ~* \'china\' or t10.country ~* \'australia\') \n' +
+            '  then \'eUICC SIM is required for Permanent Roaming\' \n' +
+            '  else \'\' \n' +
+            'end as comments\n' +
+            'from cm_data.v_master_list_coverage t1\n' +
+            'join cm_data.v_master_list_technologies t2 on t1.id = t2.id\n' +
+            'join cm_data.v_master_list_price_zones t3 on t1.id = t3.id\n' +
+            'join cm_data.v_master_list_prr_and_blocked_countries t10 on t1.id = t10.id\n' +
+            'join cm_data.v_master_list_comments t11 on t1.id = t11.id\n' +
+            'join cm_data.v_cat_m t12 on t1.id = t12.id\n' +
+            'join cm_data.v_nb_iot t13 on t1.id = t13.id\n' +
+            'where t3.eprofile_1_bics < 8', [], true)
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    }
 }
