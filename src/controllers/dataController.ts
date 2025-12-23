@@ -384,4 +384,64 @@ WHERE id=$3`;
             'where t3.eprofile_1_bics < 8', [], true)
         res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
     }
+
+    getPriceZoneListEprofile2Data = async (req: Request, res: Response) => {
+        logger.debug(`getPriceZoneListEprofile2Data API called`)
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(
+            'select distinct\n' +
+            't1.plmno_code,t1.mcc_mnc ,\n' +
+            't1.region , t1.country , t1.operator_name ,t3.eprofile_1_bics,\n' +
+            't2.tele2_2g  , t2.tele2_3g  , t2.tele2_4g  ,\n' +
+            't12."TELE2"  cat_m,\n' +
+            't13."TELE2"  nb_iot,\n' +
+            'case when t10.prr = \'TRUE\' and ( t10.country ~* \'china\' or t10.country ~* \'australia\' ) then \'eUICC SIM is required for Permanent Roaming\' else \'\' end\n' +
+            '|| \' \' ||\n' +
+            'case when t14.access_fee_per_imsi_eur_month::numeric < 0.2 then \'Access Fees Group A\' when t14.access_fee_per_imsi_eur_month::numeric >= 0.2 then \'Access Fees Group B\' else \'\' end\n' +
+            'as comments\n' +
+            'from cm_data.v_master_list_coverage t1 join cm_data.v_master_list_technologies t2 on t1.id = t2.id\n' +
+            'join cm_data.v_master_list_price_zones t3 on t1.id = t3.id\n' +
+            'join cm_data.v_master_list_prr_and_blocked_countries t10 on t1.id = t10.id\n' +
+            'join cm_data.v_master_list_comments t11 on t1.id = t11.id\n' +
+            'join cm_data.v_cat_m t12 on t1.id = t12.id\n' +
+            'join cm_data.v_nb_iot t13 on t1.id = t13.id\n' +
+            'left join cm_temp.t_tele2_updated_temp t14 on t1.plmno_code = t14.tadig\n' +
+            'where t3.eprofile_2_tele2 < 8', [], true)
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    }
+
+    getPriceZoneListEprofile3Data = async (req: Request, res: Response) => {
+        logger.debug(`getPriceZoneListEprofile3Data API called`)
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(
+            'select distinct\n' +
+            't1.plmno_code,t1.mcc_mnc ,\n' +
+            't1.region , t1.country , t1.operator_name ,t3.eprofile_1_bics,\n' +
+            't2.sparkle_2g  , t2.sparkle_3g  , t2.sparkle_4g  ,\n' +
+            't12."TIM"  cat_m,\n' +
+            't13.tim  nb_iot,\n' +
+            'case when t10.prr = \'TRUE\' and ( t10.country ~* \'china\' or t10.country ~* \'australia\' ) then \'eUICC SIM is required for Permanent Roaming\' else \'\' end as comments\n' +
+            'from cm_data.v_master_list_coverage t1 join cm_data.v_master_list_technologies t2 on t1.id = t2.id\n' +
+            'join cm_data.v_master_list_price_zones t3 on t1.id = t3.id\n' +
+            'join cm_data.v_master_list_prr_and_blocked_countries t10 on t1.id = t10.id\n' +
+            'join cm_data.v_master_list_comments t11 on t1.id = t11.id\n' +
+            'join cm_data.v_cat_m t12 on t1.id = t12.id\n' +
+            'join cm_data.v_nb_iot t13 on t1.id = t13.id\n' +
+            'where t3.eprofile_3_tim < 8', [], true)
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    }
+
+    getPriceZoneListEprofile4Data = async (req: Request, res: Response) => {
+        logger.debug(`getPriceZoneListEprofile4Data API called`)
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(
+            'SELECT plmno, mcc_mnc, region, country, "operator", pz, "2g", "3g", "4g", cat_m, nb_iot, "comments"\n' +
+            'FROM cm_data.t_eprofile_4', [], true)
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    }
+
+    getPriceZoneListEprofile5Data = async (req: Request, res: Response) => {
+        logger.debug(`getPriceZoneListEprofile5Data API called`)
+        const { rows, columns } = await this.postgresQueryRunner.executeQuery(
+            'SELECT plmno, mcc_mnc, region, country, "operator", pz, "2g", "3g", "4g", cat_m, nb_iot, "comments"\n' +
+            'FROM cm_data.t_eprofile_5', [], true)
+        res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
+    }
 }

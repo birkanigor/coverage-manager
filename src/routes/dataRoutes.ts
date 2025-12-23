@@ -38,5 +38,9 @@ router.get('/getPriceZoneListTcp4GlobalData', authMiddleware.authenticate, dataC
 router.get('/getPriceZoneListTcp5GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp5GlobalData);
 
 router.get('/getPriceZoneListEprofile1Data', authMiddleware.authenticate, dataController.getPriceZoneListEprofile1Data);
+router.get('/getPriceZoneListEprofile2Data', authMiddleware.authenticate, dataController.getPriceZoneListEprofile2Data);
+router.get('/getPriceZoneListEprofile3Data', authMiddleware.authenticate, dataController.getPriceZoneListEprofile3Data);
+router.get('/getPriceZoneListEprofile4Data', authMiddleware.authenticate, dataController.getPriceZoneListEprofile4Data);
+router.get('/getPriceZoneListEprofile5Data', authMiddleware.authenticate, dataController.getPriceZoneListEprofile5Data);
 
 export default router;
