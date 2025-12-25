@@ -8,6 +8,7 @@ const uploadController = new UploadController();
 
 router.post('/getDataLoadersConf', authMiddleware.authenticate, uploadController.getDataLoadersConf);
 router.post('/uploadData', authMiddleware.authenticate, uploadController.uploadData);
+router.post('/uploadHotMobileExcel', authMiddleware.authenticate, uploadController.uploadHotMobileExcel);
 router.post('/updateData', authMiddleware.authenticate, uploadController.updateData);
 router.post('/getImsiDonorData', authMiddleware.authenticate, uploadController.getImsiDonorData);
 
