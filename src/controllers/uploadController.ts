@@ -41,64 +41,64 @@ select t1.id, t2.imsi_donor_name , data_set_name, temp_table_name,permanent_tabl
         }
     }
 
-    uploadData = async (req: Request, res: Response) => {
-        try {
-            const { data, tableName, tableId, versionName } = req.body;
-            const csvBuffer = Buffer.from(data, "base64");
-            const csvString = csvBuffer.toString("utf-8");
-            logger.debug(`uploadData API called , data : ${data}`);
+//     uploadData = async (req: Request, res: Response) => {
+//         try {
+//             const { data, tableName, tableId, versionName } = req.body;
+//             const csvBuffer = Buffer.from(data, "base64");
+//             const csvString = csvBuffer.toString("utf-8");
+//             logger.debug(`uploadData API called , data : ${data}`);
 
-            const query = `insert into cm_conf.t_data_imsi_donor_versions (etl_conf_id , version_name , version_date) 
-values ( $1, $2, current_date )
-returning version_name || ' ( ' || version_date || ' )' new_version`
-            const { rows, columns } = await this.postgresQueryRunner.executeQuery(query, [tableId, versionName], true)
+//             const query = `insert into cm_conf.t_data_imsi_donor_versions (etl_conf_id , version_name , version_date) 
+// values ( $1, $2, current_date )
+// returning version_name || ' ( ' || version_date || ' )' new_version`
+//             const { rows, columns } = await this.postgresQueryRunner.executeQuery(query, [tableId, versionName], true)
 
-            const csvStream = Readable.from([csvString]);
-            const result = await this.postgresQueryRunner.copyCsvStreamToTable(csvStream, tableName, true)
+//             const csvStream = Readable.from([csvString]);
+//             const result = await this.postgresQueryRunner.copyCsvStreamToTable(csvStream, tableName, true)
 
-            const transferFunctionQuery = `
-            SELECT transfer_function_name
-            FROM cm_conf.t_data_etl_conf
-            WHERE id = $1
-        `;
+//             const transferFunctionQuery = `
+//             SELECT transfer_function_name
+//             FROM cm_conf.t_data_etl_conf
+//             WHERE id = $1
+//         `;
 
-            const transferResult = await this.postgresQueryRunner.executeQuery(
-                transferFunctionQuery,
-                [tableId],
-                true
-            );
+//             const transferResult = await this.postgresQueryRunner.executeQuery(
+//                 transferFunctionQuery,
+//                 [tableId],
+//                 true
+//             );
 
-            if (!transferResult.rows?.length) {
-                throw new Error(`No transfer function defined for tableId=${tableId}`);
-            }
+//             if (!transferResult.rows?.length) {
+//                 throw new Error(`No transfer function defined for tableId=${tableId}`);
+//             }
 
-            const transferFunctionName = transferResult.rows[0].transfer_function_name;
+//             const transferFunctionName = transferResult.rows[0].transfer_function_name;
 
-            console.log(`transferFunctionName: ${transferFunctionName}`);
+//             console.log(`transferFunctionName: ${transferFunctionName}`);
             
 
-            // 4. הרצה דינמית של הפונקציה
-            const transferFn = (this.postgresQueryRunner as any)[transferFunctionName];
+//             // 4. הרצה דינמית של הפונקציה
+//             const transferFn = (this.postgresQueryRunner as any)[transferFunctionName];
 
-            if (typeof transferFn !== "function") {
-                throw new Error(
-                    `Transfer function '${transferFunctionName}' does not exist`
-                );
-            }
+//             if (typeof transferFn !== "function") {
+//                 throw new Error(
+//                     `Transfer function '${transferFunctionName}' does not exist`
+//                 );
+//             }
 
-            await transferFn.call(
-                this.postgresQueryRunner,
-                tableName,
-                versionName,
-                tableId
-            );
+//             await transferFn.call(
+//                 this.postgresQueryRunner,
+//                 tableName,
+//                 versionName,
+//                 tableId
+//             );
 
-            res.json({ status: result ? 'SUCCESS' : 'FAIL', message: '', data: rows });
-        } catch (error) {
-            logger.error(`uploadData API failed . Error : ${error}`)
-            res.json({ status: 'FAIL', data: null, columns: null, message: 'DB Error' });
-        }
-    }
+//             res.json({ status: result ? 'SUCCESS' : 'FAIL', message: '', data: rows });
+//         } catch (error) {
+//             logger.error(`uploadData API failed . Error : ${error}`)
+//             res.json({ status: 'FAIL', data: null, columns: null, message: 'DB Error' });
+//         }
+//     }
 
     updateData = async (req: Request, res: Response) => {
         const { tableName, columnsList, valuesList, rowId } = req.body;
@@ -135,15 +135,15 @@ returning version_name || ' ( ' || version_date || ' )' new_version`
         }
     }
 
-    uploadHotMobileExcel = async (req: Request, res: Response) => {
+    uploadExcelFile = async (req: Request, res: Response) => {
         try {
             const { data, tableName, tableId, versionName, skipRows } = req.body;
-            logger.debug(`uploadHotMobileExcel API called`);
+            logger.debug(`uploadExcelFile API called for table: ${tableName}`);
 
             // 1. Record version in t_data_imsi_donor_versions
             const versionQuery = `insert into cm_conf.t_data_imsi_donor_versions (etl_conf_id , version_name , version_date)
 values ( $1, $2, current_date )
-returning version_name || ' ( ' || version_date || ' )' new_version`;
+returning id, version_name || ' ( ' || version_date || ' )' new_version`;
             const { rows: versionRows } = await this.postgresQueryRunner.executeQuery(versionQuery, [tableId, versionName], true);
 
             // 2. Decode base64 to buffer
@@ -162,7 +162,9 @@ returning version_name || ' ( ' || version_date || ' )' new_version`;
             }) as any[][];
 
             // 5. Row indexes (0-based) - skipRows determines where data starts
-            const TITLE_ROW_INDEX = (skipRows || 7);
+            logger.debug(`skipRows: ${skipRows}`);
+
+            const TITLE_ROW_INDEX = skipRows;
             const DATA_START_INDEX = TITLE_ROW_INDEX + 1;
 
             if (rows.length <= DATA_START_INDEX) {
@@ -193,33 +195,45 @@ returning version_name || ' ( ' || version_date || ' )' new_version`;
                 // Truncate temp table before inserting
                 await client.query(`TRUNCATE TABLE ${tableName}`);
 
-                const insertSql = `
-                    INSERT INTO ${tableName} (
-                        mccmnc,
-                        plmn,
-                        "operator",
-                        country,
-                        data_rate_euro_mb,
-                        moc_mtc_sms_euro_min,
-                        camel,
-                        technology_2g_3g,
-                        lte
-                    )
-                    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+                // 8. Dynamically get table columns from database
+                const columnQuery = `
+                    SELECT column_name, ordinal_position
+                    FROM information_schema.columns
+                    WHERE table_schema = split_part($1, '.', 1)
+                      AND table_name = split_part($1, '.', 2)
+                      AND column_name != 'id'
+                    ORDER BY ordinal_position
                 `;
 
+                const columnResult = await client.query(columnQuery, [tableName]);
+                const tableColumns = columnResult.rows.map(row => row.column_name);
+
+                if (!tableColumns.length) {
+                    throw new Error(`No columns found for table ${tableName}`);
+                }
+
+                logger.debug(`Table columns: ${tableColumns.join(', ')}`);
+
+                // 9. Build dynamic INSERT statement
+                const columnsList = tableColumns.map(col => `"${col}"`).join(', ');
+                const placeholders = tableColumns.map((_, idx) => `$${idx + 1}`).join(', ');
+
+                const insertSql = `
+                    INSERT INTO ${tableName} (${columnsList})
+                    VALUES (${placeholders})
+                `;
+
+                logger.debug(`Insert SQL: ${insertSql}`);
+
+                // 10. Insert rows with dynamic column mapping
                 for (const row of dataRows) {
-                    await client.query(insertSql, [
-                        row[0] ?? null, // mccmnc
-                        row[1] ?? null, // plmn
-                        row[2] ?? null, // operator
-                        row[3] ?? null, // country
-                        row[4] ?? null, // data_rate_euro_mb
-                        row[5] ?? null, // moc_mtc_sms_euro_min
-                        row[6] ?? null, // camel
-                        row[7] ?? null, // technology_2g_3g
-                        row[8] ?? null, // lte
-                    ]);
+                    // Map Excel columns (0-indexed) to table columns
+                    const values = tableColumns.map((_, idx) => {
+                        const cellValue = row[idx];
+                        return cellValue !== undefined && cellValue !== null ? cellValue : null;
+                    });
+
+                    await client.query(insertSql, values);
                 }
 
                 await client.query("COMMIT");
@@ -231,7 +245,7 @@ returning version_name || ' ( ' || version_date || ' )' new_version`;
                 client.release();
             }
 
-            // 8. Get and execute transfer function
+            // 11. Get and execute transfer function
             const transferFunctionQuery = `
                 SELECT transfer_function_name
                 FROM cm_conf.t_data_etl_conf
@@ -251,7 +265,7 @@ returning version_name || ' ( ' || version_date || ' )' new_version`;
             const transferFunctionName = transferResult.rows[0].transfer_function_name;
             logger.debug(`transferFunctionName: ${transferFunctionName}`);
 
-            // 9. Execute transfer function dynamically
+            // 12. Execute transfer function dynamically
             const transferFn = (this.postgresQueryRunner as any)[transferFunctionName];
 
             if (typeof transferFn !== "function") {

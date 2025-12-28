@@ -175,20 +175,25 @@ export class PostgresQueryRunner {
 
 
 
-    public async appendToTele2Coverage(sourceTableName: string, versionName: string, tableId: number): Promise<void> {
-        const client = await this.pool.connect();
+    public async appendToTele2Coverage(
+        sourceTableName: string,
+        versionName: string,
+        tableId: number
+    ): Promise<boolean> {
+
+        const client = await this.pool.connect(); // borrow from pool
 
         try {
             this.log.log(`appendToTele2Coverage started`);
-
             await client.query("BEGIN");
 
+            // 1. שליפת version_id
             const versionQuery = `
-                SELECT id
-                FROM cm_conf.t_data_imsi_donor_versions
-                WHERE version_name = $1 AND etl_conf_id = $2
-                LIMIT 1
-            `;
+            SELECT id
+            FROM cm_conf.t_data_imsi_donor_versions
+            WHERE version_name = $1 AND etl_conf_id = $2
+            LIMIT 1
+        `;
 
             const versionResult = await client.query(versionQuery, [
                 versionName,
@@ -203,77 +208,76 @@ export class PostgresQueryRunner {
 
             const versionId = versionResult.rows[0].id;
 
+            // 2. העתקה לטבלת יעד עם version_id
             const insertQuery = `
-                INSERT INTO cm_data.t_tele2_coverage (
-                    region,
-                    country,
-                    operator_name,
-                    mgt_ccnc,
-                    mcc_mnc,
-                    tadig_code,
-                    gsm_out,
-                    gprs_out,
-                    tech_3g_out,
-                    camel_out,
-                    tech_4g_out,
-                    tech_5g_out,
-                    volte_out,
-                    lte_m_out,
-                    nbiot_out,
-                    nrtrde_out,
-                    steering,
-                    comments,
-                    psm_sup_lte_m,
-                    edrx_sup_lte_m,
-                    psm_sup_nbiot,
-                    edrx_sup_nbiot,
-                    version_id
-                )
-                SELECT
-                    region,
-                    country,
-                    operator_name,
-                    mgt_ccnc,
-                    CASE
-                        WHEN TRIM(mcc_mnc) IN ('', '-') THEN NULL
-                        ELSE TRIM(mcc_mnc)::numeric
-                    END,
-                    tadig_code,
-                    CASE WHEN TRIM(gsm_out) IN ('', '-') THEN NULL ELSE TRIM(gsm_out)::date END,
-                    CASE WHEN TRIM(gprs_out) IN ('', '-') THEN NULL ELSE TRIM(gprs_out)::date END,
-                    CASE WHEN TRIM(tech_3g_out) IN ('', '-') THEN NULL ELSE TRIM(tech_3g_out)::date END,
-                    CASE WHEN TRIM(camel_out) IN ('', '-') THEN NULL ELSE TRIM(camel_out)::date END,
-                    CASE WHEN TRIM(tech_4g_out) IN ('', '-') THEN NULL ELSE TRIM(tech_4g_out)::date END,
-                    CASE WHEN TRIM(tech_5g_out) IN ('', '-') THEN NULL ELSE TRIM(tech_5g_out)::date END,
-                    CASE WHEN TRIM(volte_out) IN ('', '-') THEN NULL ELSE TRIM(volte_out)::date END,
-                    CASE WHEN TRIM(lte_m_out) IN ('', '-') THEN NULL ELSE TRIM(lte_m_out)::date END,
-                    CASE WHEN TRIM(nbiot_out) IN ('', '-') THEN NULL ELSE TRIM(nbiot_out)::date END,
-                    CASE WHEN TRIM(nrtrde_out) IN ('', '-') THEN NULL ELSE TRIM(nrtrde_out)::date END,
-                    steering,
-                    comments,
-                    psm_sup_lte_m,
-                    edrx_sup_lte_m,
-                    psm_sup_nbiot,
-                    edrx_sup_nbiot,
-                    $1::int4 AS version_id
-                FROM ${sourceTableName}
-                `;
+            INSERT INTO cm_data.t_tele2_coverage (
+                region,
+                country,
+                operator_name,
+                mgt_ccnc,
+                mcc_mnc,
+                tadig_code,
+                gsm_out,
+                gprs_out,
+                tech_3g_out,
+                camel_out,
+                tech_4g_out,
+                tech_5g_out,
+                volte_out,
+                lte_m_out,
+                nbiot_out,
+                nrtrde_out,
+                steering,
+                comments,
+                psm_sup_lte_m,
+                edrx_sup_lte_m,
+                psm_sup_nbiot,
+                edrx_sup_nbiot,
+                version_id
+            )
+            SELECT
+                region,
+                country,
+                operator_name,
+                mgt_ccnc,
+                mcc_mnc,
+                tadig_code,
+                gsm_out,
+                gprs_out,
+                tech_3g_out,
+                camel_out,
+                tech_4g_out,
+                tech_5g_out,
+                volte_out,
+                lte_m_out,
+                nbiot_out,
+                nrtrde_out,
+                steering,
+                comments,
+                psm_sup_lte_m,
+                edrx_sup_lte_m,
+                psm_sup_nbiot,
+                edrx_sup_nbiot,
+                $1::int4 AS version_id
+            FROM ${sourceTableName}
+        `;
 
             await client.query(insertQuery, [versionId]);
-
             await client.query("COMMIT");
 
             this.log.log(
                 `appendToTele2Coverage finished successfully. sourceTable=${sourceTableName}, versionId=${versionId}`
             );
 
+            return true;
 
         } catch (err) {
             await client.query("ROLLBACK");
             this.log.error("Error during appendToTele2Coverage:", err);
+            return false;
 
         } finally {
-            client.release();
+            client.release(); // return to pool
         }
     }
 
@@ -530,7 +534,10 @@ export class PostgresQueryRunner {
             WHERE version_name = $1 AND etl_conf_id = $2
             LIMIT 1
         `;
-            const versionResult = await client.query(versionQuery, [versionName, tableId]);
+            const versionResult = await client.query(versionQuery, [
+                versionName,
+                tableId
+            ]);
 
             if (!versionResult.rows?.length) {
                 throw new Error(
@@ -540,7 +547,7 @@ export class PostgresQueryRunner {
 
             const versionId = versionResult.rows[0].id;
 
-            // 2. העתקה לטבלת יעד עם טיפול בטיפוסים
+            // 2. העתקה לטבלת יעד – הכל varchar חוץ מ־version_id
             const insertQuery = `
             INSERT INTO cm_data.t_sparkle_roaming_updated (
                 status,
@@ -582,7 +589,7 @@ export class PostgresQueryRunner {
                 country,
                 operator_name,
                 country_code,
-                CASE WHEN TRIM(mccmnc) IN ('', '-') THEN NULL ELSE TRIM(mccmnc)::numeric END,
+                mccmnc,
                 plmno_code,
                 technology_frequency,
                 mtc_charging,
@@ -607,10 +614,7 @@ export class PostgresQueryRunner {
                 camelph_out_gsm_on_the_ship,
                 ira_update_launched_on,
                 nrtrde_network_telecom_italia_itasi,
-                CASE 
-                    WHEN TRIM(nrtrde_commercial_date) IN ('', '-') THEN NULL 
-                    ELSE to_date(TRIM(nrtrde_commercial_date), 'DD/MM/YYYY') 
-                END,
+                nrtrde_commercial_date,
                 $1::int4 AS version_id
             FROM ${sourceTableName}
         `;
@@ -619,7 +623,10 @@ export class PostgresQueryRunner {
 
             await client.query("COMMIT");
 
-            this.log.log(`appendToSparkleRoamingUpdated finished successfully. sourceTable=${sourceTableName}, versionId=${versionId}`);
+            this.log.log(
+                `appendToSparkleRoamingUpdated finished successfully. sourceTable=${sourceTableName}, versionId=${versionId}`
+            );
+
             return true;
 
         } catch (err) {
