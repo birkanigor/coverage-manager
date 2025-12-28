@@ -11,8 +11,8 @@ router.post('/updateOperatorInfoData', authMiddleware.authenticate, dataControll
 router.post('/insertOperatorInfoData', authMiddleware.authenticate, dataController.insertOperatorInfoData);
 router.post('/deleteOperatorInfoData', authMiddleware.authenticate, dataController.deleteOperatorInfoData);
 
-router.get('/getNbIotData', authMiddleware.authenticate, dataController.getNbIotData);
-router.get('/getCatMData', authMiddleware.authenticate, dataController.getCatMData);
+router.post('/getNbIotData', authMiddleware.authenticate, dataController.getNbIotData);
+router.post('/getCatMData', authMiddleware.authenticate, dataController.getCatMData);
 // router.get('/getBapData', authMiddleware.authenticate, dataController.getBapData);
 
 router.post('/getBapData', authMiddleware.authenticate, dataController.getBapData);
@@ -29,7 +29,7 @@ router.post('/deleteCountriesRoamingProhibitedData', authMiddleware.authenticate
 
 router.get('/getIotlaunchesAndSteeringData',authMiddleware.authenticate, dataController.getIotlaunchesAndSteeringData);
 
-router.get('/getMasterListData', authMiddleware.authenticate, dataController.getMasterListData);
+router.post('/getMasterListData', authMiddleware.authenticate, dataController.getMasterListData);
 
 router.get('/getPriceZoneListTcp1GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp1GlobalData);
 router.get('/getPriceZoneListTcp2GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp2GlobalData);

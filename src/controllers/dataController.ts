@@ -60,19 +60,23 @@ where id=$8`
 
 
     getNbIotData = async (req: Request, res: Response) => {
-        logger.debug(`getNbIotData API called`)
+        const { versionIds } = req.body;
+        logger.debug(`getNbIotData API called with versionIds: ${JSON.stringify(versionIds)}`);
+        logger.debug(`Version IDs received: ${versionIds[1]}, ${versionIds[5]}, ${versionIds[7]}`);
+
         const { rows, columns } = await this.postgresQueryRunner.executeQuery('with \n' +
             'operator_info as\n' +
             '(select distinct plmno_code, operator_name\n' +
             'from cm_data.t_operator_info where coalesce(plmno_code,\'\') != \'\'),\n' +
             't_sparkle_roaming_updated as\n' +
             '(select distinct plmno_code , lower(nbiot_outbound) nbiot_outbound \n' +
-            'from cm_data.t_sparkle_roaming_updated ),\n' +
+            'from cm_data.t_sparkle_roaming_updated where version_id = $1 ),\n' +
             'tele2_coverage as\n' +
-            '(select distinct tadig_code, nbiot_out from cm_data.t_tele2_coverage ),\n' +
+            '(select distinct tadig_code, nbiot_out from cm_data.t_tele2_coverage where version_id = $2 ),\n' +
             'bics_coverage_bands_updated as \n' +
             '(select barring_reference_bics , max(fra09_nb_iot_launch) fra09_nb_iot_launch \n' +
             'from cm_data.t_bics_coverage_bands_updated\n' +
+            'where version_id = $3\n' +
             'group by barring_reference_bics)\n' +
             'select \n' +
             't1.plmno_code ,  \n' +
@@ -83,23 +87,28 @@ where id=$8`
             'from operator_info t1 left join t_sparkle_roaming_updated t2 on t1.plmno_code = t2.plmno_code \n' +
             'left join tele2_coverage t3 on t1.plmno_code = t3.tadig_code\n' +
             'left join bics_coverage_bands_updated t4 on t1.plmno_code = t4.barring_reference_bics\n' +
-            'order by t1.plmno_code', [], true)
+            'order by t1.plmno_code', [versionIds[5], versionIds[1], versionIds[7]], true)
         res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
     }
 
     getCatMData = async (req: Request, res: Response) => {
+        const { versionIds } = req.body;
+        logger.debug(`getCatMData API called with versionIds: ${JSON.stringify(versionIds)}`);
+        logger.debug(`Version IDs received: ${versionIds[1]}, ${versionIds[5]}, ${versionIds[7]}`);
+
         const { rows, columns } = await this.postgresQueryRunner.executeQuery('with \n' +
             'operator_info as\n' +
             '(select distinct plmno_code, operator_name , country\n' +
             'from cm_data.t_operator_info where coalesce(plmno_code,\'\') != \'\'),\n' +
             't_sparkle_roaming_updated as\n' +
             '(select distinct plmno_code , lower(lte_m_outbound) lte_m_outbound \n' +
-            'from cm_data.t_sparkle_roaming_updated ),\n' +
+            'from cm_data.t_sparkle_roaming_updated where version_id = $1 ),\n' +
             'tele2_coverage as\n' +
-            '(select distinct tadig_code, lte_m_out from cm_data.t_tele2_coverage ),\n' +
+            '(select distinct tadig_code, lte_m_out from cm_data.t_tele2_coverage where version_id = $2 ),\n' +
             'bics_coverage_bands_updated as \n' +
             '(select barring_reference_bics , max(fra09_lte_m_launch) fra09_lte_m_launch \n' +
             'from cm_data.t_bics_coverage_bands_updated\n' +
+            'where version_id = $3\n' +
             'group by barring_reference_bics),\n' +
             'imsi_donors_info as\t \n' +
             '(select  \n' +
@@ -125,7 +134,7 @@ where id=$8`
             'case when "general" ~* \'true\' and "TIM" ~*\'false\' then \'TRUE*\' else "TIM" end "TIM_general",\n' +
             'case when "general" ~* \'true\' and "TELE2" ~*\'false\' then \'TRUE*\' else "TELE2" end "TELE2_general",\n' +
             'case when "general" ~* \'true\' and "BICS" ~*\'false\' then \'TRUE*\' else "BICS" end "BICS_general"\n' +
-            'from imsi_donors_info\t\n', [], true)
+            'from imsi_donors_info\t\n', [versionIds[5], versionIds[1], versionIds[7]], true)
         res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
     };
 
@@ -278,7 +287,9 @@ WHERE id=$3`;
     }
 
     getMasterListData = async (req: Request, res: Response) => {
-        logger.debug(`getMasterListData API called`)
+        const { versionIds } = req.body;
+        logger.debug(`getCatMData API called with versionIds: ${JSON.stringify(versionIds)}`);
+        logger.debug(`Version IDs received: ${versionIds[1]},${versionIds[2]},${versionIds[3]},${versionIds[4]},${versionIds[5]}, ${versionIds[6]}, ${versionIds[7]}, ${versionIds[8]}, ${versionIds[9]}`);
         const { rows, columns } = await this.postgresQueryRunner.executeQuery(
             'select distinct\n' +
             't1.plmno_code, t1.mcc_mnc , t1.region , t1.country , t1.operator_name , t1.country_code , t1.mgt ,\n' +
