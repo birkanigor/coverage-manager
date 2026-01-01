@@ -45,7 +45,7 @@ where id=$8`
         res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
     };
 
-    
+
     deleteOperatorInfoData = async (req: Request, res: Response) => {
         const { id } = req.body;
         logger.debug(`deleteOperatorInfoData API called. id: ${id}`);
@@ -291,37 +291,149 @@ WHERE id=$3`;
         logger.debug(`getCatMData API called with versionIds: ${JSON.stringify(versionIds)}`);
         logger.debug(`Version IDs received: ${versionIds[1]},${versionIds[2]},${versionIds[3]},${versionIds[4]},${versionIds[5]}, ${versionIds[6]}, ${versionIds[7]}, ${versionIds[8]}, ${versionIds[9]}`);
         const { rows, columns } = await this.postgresQueryRunner.executeQuery(
-            'select distinct\n' +
-            't1.plmno_code, t1.mcc_mnc , t1.region , t1.country , t1.operator_name , t1.country_code , t1.mgt ,\n' +
-            't1.sparkle_coverage , t1.hot_coverage , t1.tele2_coverage , t1.bics_coverage ,\n' +
-            't2.sparkle_2g , t2.sparkle_3g , t2.sparkle_4g ,\n' +
-            't2.hot_2g_3g hot_2g, t2.hot_2g_3g hot_3g, t2.hot_4g ,\n' +
-            't2.tele2_2g , t2.tele2_3g , t2.tele2_4g ,\n' +
-            't2.bics_2g , t2.bics_3g , t2.bics_4g ,\n' +
-            't3.eprofile_3_tim , t3.hot_zone , t3.eprofile_2_tele2 , t3.eprofile_1_bics ,\n' +
-            't4.tim_data_per_mb,t4.tim_sms_mo,t4.tim_voice_mo,t4.tim_voice_mt,\n' +
-            't4.hot_data,t4.hot_sms,t4.hot_moc,t4.hot_mtc,\n' +
-            't4.tele2_data,t4.tele2_sms_mo,t4.tele2_voice_mo,t4.tele2_voice_mt,\n' +
-            't4.bics_data,t4.bics_sms,t4.bics_voie_mo,t4.bics_voice_mt,\n' +
-            't5.imsi_donor_tcp1,t5.profile1_pz,t5.profile1_price,t5.profile1_broadband,\n' +
-            't6.imsi_donor_tcp2,t6.profile2_pz,t6.profile2_price,t6.profile2_broadband,\n' +
-            't7.imsi_donor_tcp3,t7.profile3_pz,t7.profile3_price,t7.profile3_broadband,\n' +
-            't8.imsi_donor_tcp4,t8.profile4_pz,t8.profile4_price,t8.profile4_broadband,\n' +
-            't9.imsi_donor_tcp5,t9.profile5_pz,t9.profile5_price,t9.profile5_broadband,\n' +
-            't10.prr, t10.blocked_countries,\n' +
-            't11.comments_profile_1,t11.comments_profile_2,t11.comments_profile_3,t11.comments_profile_4,t11.comments_profile_5\n' +
-            'from cm_data.v_master_list_coverage t1\n' +
-            'join cm_data.v_master_list_technologies t2 on t1.id = t2.id\n' +
-            'join cm_data.v_master_list_price_zones t3 on t1.id = t3.id\n' +
-            'join cm_data.v_master_list_prices t4 on t1.id = t4.id\n' +
-            'join cm_data.v_master_list_profile_1 t5 on t1.id = t5.id\n' +
-            'join cm_data.v_master_list_profile_2 t6 on t1.id = t6.id\n' +
-            'join cm_data.v_master_list_profile_3 t7 on t1.id = t7.id\n' +
-            'join cm_data.v_master_list_profile_4 t8 on t1.id = t8.id\n' +
-            'join cm_data.v_master_list_profile_5 t9 on t1.id = t9.id\n' +
-            'join cm_data.v_master_list_prr_and_blocked_countries t10 on t1.id = t10.id\n' +
-            'join cm_data.v_master_list_comments t11 on t1.id = t11.id',
-            [], true)
+            'with master_list_coverage as ( ' +
+            '   select * ' +
+            '   from cm_data.f_master_list_coverage( ' +
+            '       $4, ' +
+            '       $6, ' +
+            '       $2, ' +
+            '       $1, ' +
+            '       $8 ' +
+            '   ) ' +
+            '), ' +
+            'master_list_technologies as ( ' +
+            '   select * ' +
+            '   from cm_data.f_master_list_technologies( ' +
+            '       $4, ' +
+            '       $6, ' +
+            '       $2, ' +
+            '       $1, ' +
+            '       $8, ' +
+            '       $5, ' +
+            '       $7 ' +
+            '   ) ' +
+            '), ' +
+            'master_list_prices as ( ' +
+            '   select * ' +
+            '   from cm_data.f_master_list_prices( ' +
+            '       $4, ' +
+            '       $6, ' +
+            '       $2, ' +
+            '       $1, ' +
+            '       $8, ' +
+            '       $3 ' +
+            '   ) ' +
+            '), ' +
+            'master_list_price_zones as ( ' +
+            '   select * ' +
+            '   from cm_data.f_master_list_price_zones( ' +
+            '       $4, ' +
+            '       $6, ' +
+            '       $2, ' +
+            '       $1, ' +
+            '       $8, ' +
+            '       $3 ' +
+            '   ) ' +
+            '), ' +
+            'master_list_profile_1 as ( ' +
+            '   select * ' +
+            '   from cm_data.f_master_list_profile_1( ' +
+            '       $4, ' +
+            '       $6, ' +
+            '       $2, ' +
+            '       $1, ' +
+            '       $8, ' +
+            '       $3 ' +
+            '   ) ' +
+            '), ' +
+            'master_list_profile_2 as ( ' +
+            '   select * ' +
+            '   from cm_data.f_master_list_profile_2( ' +
+            '       $4, ' +
+            '       $6, ' +
+            '       $2, ' +
+            '       $1, ' +
+            '       $8, ' +
+            '       $3 ' +
+            '   ) ' +
+            '), ' +
+            'master_list_profile_3 as ( ' +
+            '   select * ' +
+            '   from cm_data.f_master_list_profile_3( ' +
+            '       $4, ' +
+            '       $6, ' +
+            '       $2, ' +
+            '       $1, ' +
+            '       $8, ' +
+            '       $3 ' +
+            '   ) ' +
+            '), ' +
+            'master_list_profile_4 as ( ' +
+            '   select * ' +
+            '   from cm_data.f_master_list_profile_4( ' +
+            '       $4, ' +
+            '       $6, ' +
+            '       $2, ' +
+            '       $1, ' +
+            '       $8, ' +
+            '       $3 ' +
+            '   ) ' +
+            '), ' +
+            'master_list_profile_5 as ( ' +
+            '   select * ' +
+            '   from cm_data.f_master_list_profile_5( ' +
+            '       $4, ' +
+            '       $6, ' +
+            '       $2, ' +
+            '       $1, ' +
+            '       $8, ' +
+            '       $3 ' +
+            '   ) ' +
+            '), ' +
+            'master_list_comments as ( ' +
+            '   select * ' +
+            '   from cm_data.f_master_list_comments( ' +
+            '       $4, ' +
+            '       $6, ' +
+            '       $2, ' +
+            '       $1, ' +
+            '       $8, ' +
+            '       $3 ' +
+            '   ) ' +
+            ') ' +
+            'select distinct ' +
+            't1.plmno_code, t1.mcc_mnc, t1.region, t1.country, t1.operator_name, t1.country_code, t1.mgt, ' +
+            't1.sparkle_coverage, t1.hot_coverage, t1.tele2_coverage, t1.bics_coverage, ' +
+            't2.sparkle_2g, t2.sparkle_3g, t2.sparkle_4g, ' +
+            't2.hot_2g_3g hot_2g, t2.hot_2g_3g hot_3g, t2.hot_4g, ' +
+            't2.tele2_2g, t2.tele2_3g, t2.tele2_4g, ' +
+            't2.bics_2g, t2.bics_3g, t2.bics_4g, ' +
+            't3.eprofile_3_tim, t3.hot_zone, t3.eprofile_2_tele2, t3.eprofile_1_bics, ' +
+            't4.tim_data_per_mb, t4.tim_sms_mo, t4.tim_voice_mo, t4.tim_voice_mt, ' +
+            't4.hot_data, t4.hot_sms, t4.hot_moc, t4.hot_mtc, ' +
+            't4.tele2_data, t4.tele2_sms_mo, t4.tele2_voice_mo, t4.tele2_voice_mt, ' +
+            't4.bics_data, t4.bics_sms, t4.bics_voice_mo, t4.bics_voice_mt, ' +
+            't5.imsi_donor_tcp1, t5.profile1_pz, t5.profile1_price, t5.profile1_broadband, ' +
+            't6.imsi_donor_tcp2, t6.profile2_pz, t6.profile2_price, t6.profile2_broadband, ' +
+            't7.imsi_donor_tcp3, t7.profile3_pz, t7.profile3_price, t7.profile3_broadband, ' +
+            't8.imsi_donor_tcp4, t8.profile4_pz, t8.profile4_price, t8.profile4_broadband, ' +
+            't9.imsi_donor_tcp5, t9.profile5_pz, t9.profile5_price, t9.profile5_broadband, ' +
+            't10.prr, t10.blocked_countries, ' +
+            't11.comments_profile_1, t11.comments_profile_2, t11.comments_profile_3, t11.comments_profile_4, t11.comments_profile_5 ' +
+            'from master_list_coverage t1 ' +
+            'join master_list_technologies t2 on t1.id = t2.id ' +
+            'join master_list_price_zones t3 on t1.id = t3.id ' +
+            'join master_list_prices t4 on t1.id = t4.id ' +
+            'join master_list_profile_1 t5 on t1.id = t5.id ' +
+            'join master_list_profile_2 t6 on t1.id = t6.id ' +
+            'join master_list_profile_3 t7 on t1.id = t7.id ' +
+            'join master_list_profile_4 t8 on t1.id = t8.id ' +
+            'join master_list_profile_5 t9 on t1.id = t9.id ' +
+            'join cm_data.v_master_list_prr_and_blocked_countries t10 on t1.id = t10.id ' +
+            'join master_list_comments t11 on t1.id = t11.id',
+            [versionIds[1], versionIds[2], versionIds[3], versionIds[4], versionIds[5], versionIds[6], versionIds[7], versionIds[8]],
+            true
+        );
         res.json({ status: 'SUCCESS', data: rows, columns, message: '' });
     }
 
