@@ -31,16 +31,15 @@ router.get('/getIotlaunchesAndSteeringData',authMiddleware.authenticate, dataCon
 
 router.post('/getMasterListData', authMiddleware.authenticate, dataController.getMasterListData);
 
-router.get('/getPriceZoneListTcp1GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp1GlobalData);
-router.get('/getPriceZoneListTcp2GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp2GlobalData);
-router.get('/getPriceZoneListTcp3GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp3GlobalData);
-router.get('/getPriceZoneListTcp4GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp4GlobalData);
-router.get('/getPriceZoneListTcp5GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp5GlobalData);
+router.post('/getPriceZoneListTcp1GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp1GlobalData);
+router.post('/getPriceZoneListTcp2GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp2GlobalData);
+router.post('/getPriceZoneListTcp3GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp3GlobalData);
+router.post('/getPriceZoneListTcp4GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp4GlobalData);
+router.post('/getPriceZoneListTcp5GlobalData', authMiddleware.authenticate, dataController.getPriceZoneListTcp5GlobalData);
 
-router.get('/getPriceZoneListEprofile1Data', authMiddleware.authenticate, dataController.getPriceZoneListEprofile1Data);
-router.get('/getPriceZoneListEprofile2Data', authMiddleware.authenticate, dataController.getPriceZoneListEprofile2Data);
-router.get('/getPriceZoneListEprofile3Data', authMiddleware.authenticate, dataController.getPriceZoneListEprofile3Data);
-router.get('/getPriceZoneListEprofile4Data', authMiddleware.authenticate, dataController.getPriceZoneListEprofile4Data);
-router.get('/getPriceZoneListEprofile5Data', authMiddleware.authenticate, dataController.getPriceZoneListEprofile5Data);
-
+router.post('/getPriceZoneListEprofile1Data', authMiddleware.authenticate, dataController.getPriceZoneListEprofile1Data);
+router.post('/getPriceZoneListEprofile2Data', authMiddleware.authenticate, dataController.getPriceZoneListEprofile2Data);
+router.post('/getPriceZoneListEprofile3Data', authMiddleware.authenticate, dataController.getPriceZoneListEprofile3Data);
+router.post('/getPriceZoneListEprofile4Data', authMiddleware.authenticate, dataController.getPriceZoneListEprofile4Data);
+router.post('/getPriceZoneListEprofile5Data', authMiddleware.authenticate, dataController.getPriceZoneListEprofile5Data);
 export default router;
