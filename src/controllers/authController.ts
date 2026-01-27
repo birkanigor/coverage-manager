@@ -4,6 +4,10 @@ import jwt from 'jsonwebtoken';
 import { sessions, SECRET_KEY, USER } from '../utils/constants';
 import {PostgresQueryRunner} from "../dal"
 import logger from "../app.logger";
+import { EnvReader } from '../env';
+
+const envReader = new EnvReader();
+const DB_PUBLIC_PATH:string = envReader.getValue('DB_PUBLIC_PATH') || '';
 
 export class AuthController {
     private postgresQueryRunner: PostgresQueryRunner = new PostgresQueryRunner(logger);
@@ -12,11 +16,11 @@ export class AuthController {
         const {user_name, password} = req.body;
 
         const { rows, columns } = await this.postgresQueryRunner.executeQuery(
-            'select  user_name, first_name, last_name, user_phone_number, user_email, t2.type_name , user_status\n' +
-            'from cm_conf.t_cm_users t1 join cm_conf.t_cm_user_types t2 on t1.user_type = t2.id\n' +
-            'where user_name = $1 \n' +
-            'and user_password = crypt( $2, user_password )\n' +
-            'and user_status = 1', [user_name, password], true);
+            `select  user_name, first_name, last_name, user_phone_number, user_email, t2.type_name , user_status
+            from cm_conf.t_cm_users t1 join cm_conf.t_cm_user_types t2 on t1.user_type = t2.id
+            where user_name = $1 
+            and user_password = ${DB_PUBLIC_PATH}crypt( $2, user_password )
+            and user_status = 1`, [user_name, password], true);
 
         if (rows.length === 1) {
             const sessionId = `${Date.now()}-${Math.random()}`;
