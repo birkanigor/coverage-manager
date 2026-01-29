@@ -11,5 +11,6 @@ router.post('/getDataLoadersConf', authMiddleware.authenticate, uploadController
 router.post('/uploadExcelFile', authMiddleware.authenticate, uploadController.uploadExcelFile);
 router.post('/updateData', authMiddleware.authenticate, uploadController.updateData);
 router.post('/getImsiDonorData', authMiddleware.authenticate, uploadController.getImsiDonorData);
+router.post('/updateTitle', authMiddleware.authenticate, uploadController.updateTitle);
 
 export default router;

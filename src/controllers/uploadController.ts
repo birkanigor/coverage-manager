@@ -135,6 +135,27 @@ select t1.id, t2.imsi_donor_name , data_set_name, temp_table_name,permanent_tabl
         }
     }
 
+    updateTitle = async (req: Request, res: Response) => {
+        const { subscreen_level_2_id, column_name, new_title_name } = req.body;
+        logger.debug(`updateTitle API called. subscreen_level_2_id: ${subscreen_level_2_id}, column_name: ${column_name}, new_title_name: ${new_title_name}`);
+
+        try {
+            const query = `select cm_conf.fn_update_etl_column_comment($1, $2, $3)`;
+            const { rows } = await this.postgresQueryRunner.executeQuery(query, [subscreen_level_2_id, column_name, new_title_name], true);
+
+            const updatedColumnName = rows[0]?.fn_update_etl_column_comment;
+
+            if (updatedColumnName === new_title_name) {
+                res.json({ status: 'SUCCESS', data: updatedColumnName, message: '' });
+            } else {
+                res.json({ status: 'FAIL', data: -1, message: 'Update failed - returned value does not match' });
+            }
+        } catch (error) {
+            logger.error(`updateTitle error: ${error}`);
+            res.json({ status: 'FAIL', data: -1, message: 'DB Error' });
+        }
+    }
+
     uploadExcelFile = async (req: Request, res: Response) => {
         try {
             const { data, tableName, tableId, versionName, skipRows } = req.body;
